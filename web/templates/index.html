@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetPulse Radar — Global Network Controller &amp; Traffic Intelligence</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="alternate icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  
+  <header class="radar-header">
+    <div class="radar-brand">
+      <div class="radar-logo">
+        <div class="radar-icon-wrap">
+          
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
+            <circle cx="12" cy="12" r="6" stroke-opacity="0.9"></circle>
+            <circle cx="12" cy="12" r="9.5" stroke-opacity="0.45" stroke-dasharray="2 2"></circle>
+            <line x1="12" y1="12" x2="19" y2="5" stroke-width="2"></line>
+            <line x1="12" y1="1.5" x2="12" y2="3.5"></line>
+            <line x1="12" y1="20.5" x2="12" y2="22.5"></line>
+            <line x1="1.5" y1="12" x2="3.5" y2="12"></line>
+            <line x1="20.5" y1="12" x2="22.5" y2="12"></line>
+          </svg>
+        </div>
+        <div class="radar-title">
+          NetPulse <span class="radar-tag">RADAR</span>
+        </div>
+      </div>
+
+      
+      <button class="radar-search-btn" onclick="openSpotlight()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <span>Search metrics, QoS, commands...</span>
+        <kbd>Ctrl K</kbd>
+      </button>
+    </div>
+
+    <div class="radar-header-right">
+      
+      <div class="live-beacon">
+        <span class="beacon-pulse"></span>
+        <span>LIVE RADAR</span>
+      </div>
+
+      
+      <span class="pill pill-cyan" id="adapter-badge">
+        <span id="adapter-name">Scanning...</span>
+      </span>
+
+      <span class="pill pill-gray" id="admin-badge">User Space</span>
+
+      
+      <button class="btn-cf btn-cf-orange" onclick="openReportModal()" style="padding: 5px 12px; font-size: 11.5px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        Audit Report
+      </button>
+
+      
+      <button class="btn-cf btn-cf-secondary" id="theme-toggle" title="Toggle Theme" style="padding: 6px 9px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line></svg>
+      </button>
+    </div>
+  </header>
+
+  
+  <nav class="radar-subnav">
+    <div class="radar-tabs">
+      <a class="radar-tab active" href="#overview" onclick="switchTab(event, 'overview')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Radar Overview
+      </a>
+      <a class="radar-tab" href="#qos" onclick="switchTab(event, 'qos')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        Traffic &amp; QoS Controller
+      </a>
+      <a class="radar-tab" href="#dns" onclick="switchTab(event, 'dns')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        DNS &amp; Autonomous Systems
+      </a>
+      <a class="radar-tab" href="#analyzer" onclick="switchTab(event, 'analyzer')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        Bufferbloat &amp; MTU
+      </a>
+      <a class="radar-tab" href="#sockets" onclick="switchTab(event, 'sockets')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        Socket Mapping
+      </a>
+    </div>
+
+    <div style="font-size: 11.5px; color: var(--cf-text-muted); font-family: var(--font-mono);">
+      Sampling: 1000ms Real-Time
+    </div>
+  </nav>
+
+  
+  <main class="radar-container">
+
+    
+    <section class="radar-kpi-grid">
+      
+      <div class="radar-kpi-card">
+        <div class="radar-kpi-top">
+          <span class="radar-kpi-label">Inbound Traffic</span>
+          <span class="radar-kpi-delta delta-orange">LIVE STREAM</span>
+        </div>
+        <div class="radar-kpi-val-row">
+          <span class="radar-kpi-val" id="kpi-down-rate">0.0</span>
+          <span class="radar-kpi-unit">KB/s</span>
+        </div>
+        <svg class="radar-sparkline" id="sparkline-down" viewBox="0 0 100 24" preserveAspectRatio="none">
+          <path d="M0,20 L10,18 L20,22 L30,15 L40,19 L50,12 L60,16 L70,8 L80,14 L90,10 L100,6" fill="none" stroke="#f6821f" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      
+      <div class="radar-kpi-card">
+        <div class="radar-kpi-top">
+          <span class="radar-kpi-label">Outbound Traffic</span>
+          <span class="radar-kpi-delta delta-cyan">EGRESS</span>
+        </div>
+        <div class="radar-kpi-val-row">
+          <span class="radar-kpi-val" id="kpi-up-rate">0.0</span>
+          <span class="radar-kpi-unit">KB/s</span>
+        </div>
+        <svg class="radar-sparkline" id="sparkline-up" viewBox="0 0 100 24" preserveAspectRatio="none">
+          <path d="M0,22 L10,20 L20,21 L30,18 L40,19 L50,15 L60,17 L70,12 L80,14 L90,11 L100,9" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      
+      <div class="radar-kpi-card">
+        <div class="radar-kpi-top">
+          <span class="radar-kpi-label">Edge Handshake RTT</span>
+          <span class="radar-kpi-delta delta-green">DNS / ICMP</span>
+        </div>
+        <div class="radar-kpi-val-row">
+          <span class="radar-kpi-val" id="kpi-rtt">0.0</span>
+          <span class="radar-kpi-unit">ms</span>
+        </div>
+        <svg class="radar-sparkline" id="sparkline-rtt" viewBox="0 0 100 24" preserveAspectRatio="none">
+          <path d="M0,12 L15,14 L30,10 L45,13 L60,11 L75,12 L90,9 L100,10" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      
+      <div class="radar-kpi-card">
+        <div class="radar-kpi-top">
+          <span class="radar-kpi-label">Bufferbloat Index</span>
+          <span class="radar-kpi-delta delta-green" id="kpi-health-verdict">Optimal</span>
+        </div>
+        <div class="radar-kpi-val-row">
+          <span class="radar-kpi-val" id="kpi-grade" style="color: #10b981;">A+</span>
+          <span class="radar-kpi-unit">Quality Score</span>
+        </div>
+        <div style="font-size: 11px; color: var(--cf-text-muted); margin-top: 10px; font-family: var(--font-mono);">
+          Jitter: <span id="kpi-jitter">0.0 ms</span> | Loss: <span id="kpi-packet-loss">0.0%</span>
+        </div>
+      </div>
+    </section>
+
+    
+    <div id="view-overview" class="view-panel">
+      <div class="radar-grid-2col">
+        
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">
+                <span class="pill pill-orange" style="font-size: 10px;">BANDWIDTH</span>
+                Global Network Throughput Stream
+              </div>
+              <div class="radar-panel-desc">Real-time socket delta stream: Inbound (Orange) vs Outbound (Cyan)</div>
+            </div>
+            <div style="font-size: 11px; font-family: var(--font-mono); color: var(--cf-text-muted);">
+              Total: <span id="kpi-total-recv">0 MB</span> In / <span id="kpi-total-sent">0 MB</span> Out
+            </div>
+          </div>
+          <div class="radar-panel-body">
+            <div class="radar-chart-wrap">
+              <canvas id="throughputChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">Traffic Distribution</div>
+              <div class="radar-panel-desc">Application share &amp; protocol proportions</div>
+            </div>
+            <span class="pill pill-gray" id="active-qos-label">BALANCED</span>
+          </div>
+          <div class="radar-panel-body" style="display: flex; flex-direction: column; justify-content: space-between;">
+            
+            <div class="dist-group">
+              <div class="dist-item">
+                <div class="dist-label-row">
+                  <span class="dist-name">Web Browsers (HTTP/S)</span>
+                  <span class="dist-val" id="pct-browser">65%</span>
+                </div>
+                <div class="dist-bar-track"><div class="dist-bar-fill orange" id="bar-browser" style="width: 65%;"></div></div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-label-row">
+                  <span class="dist-name">Gaming &amp; Voice (UDP)</span>
+                  <span class="dist-val" id="pct-gaming">20%</span>
+                </div>
+                <div class="dist-bar-track"><div class="dist-bar-fill cyan" id="bar-gaming" style="width: 20%;"></div></div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-label-row">
+                  <span class="dist-name">Collaboration (WebRTC)</span>
+                  <span class="dist-val" id="pct-collab">10%</span>
+                </div>
+                <div class="dist-bar-track"><div class="dist-bar-fill green" id="bar-collab" style="width: 10%;"></div></div>
+              </div>
+
+              <div class="dist-item">
+                <div class="dist-label-row">
+                  <span class="dist-name">Bulk / OS Updates</span>
+                  <span class="dist-val" id="pct-bulk">5%</span>
+                </div>
+                <div class="dist-bar-track"><div class="dist-bar-fill purple" id="bar-bulk" style="width: 5%;"></div></div>
+              </div>
+            </div>
+
+            
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--cf-border-subtle);">
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600;">
+                <span style="color: var(--cf-orange);">TCP Stream (<span id="tcp-share">78%</span>)</span>
+                <span style="color: var(--cf-cyan);">UDP Datagram (<span id="udp-share">22%</span>)</span>
+              </div>
+              <div class="segmented-track">
+                <div class="segmented-segment seg-tcp" id="seg-tcp" style="width: 78%;"></div>
+                <div class="segmented-segment seg-udp" id="seg-udp" style="width: 22%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="radar-panel" style="margin-top: 20px;">
+        <div class="radar-panel-header">
+          <div>
+            <div class="radar-panel-title">Top Bandwidth Consuming Processes</div>
+            <div class="radar-panel-desc">Real-time socket inspect &amp; bandwidth hog telemetry</div>
+          </div>
+          <input type="text" id="proc-search" placeholder="Filter executable..." style="background: var(--cf-bg-card); border: 1px solid var(--cf-border-default); border-radius: var(--radius-sm); padding: 6px 12px; color: var(--cf-text-primary); font-size: 12px; width: 200px;">
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="cf-table" id="process-table">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Process Name</th>
+                <th>Category</th>
+                <th>Sockets</th>
+                <th>Inbound Throughput</th>
+                <th>Outbound Throughput</th>
+                <th>Priority</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="process-table-body">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--cf-text-muted); padding: 24px;">Scanning active sockets...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="view-qos" class="view-panel" style="display: none;">
+      <div class="radar-panel">
+        <div class="radar-panel-header">
+          <div>
+            <div class="radar-panel-title">Quality of Service (QoS) &amp; DSCP Traffic Shaping</div>
+            <div class="radar-panel-desc">Allocate bandwidth priority to latency-critical flows and eliminate bufferbloat</div>
+          </div>
+        </div>
+        <div class="radar-panel-body">
+          <div class="cf-qos-grid" id="qos-full-grid">
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="view-dns" class="view-panel" style="display: none;">
+      <div class="radar-grid-equal">
+        
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">Autonomous Systems &amp; Upstream DNS Benchmark</div>
+              <div class="radar-panel-desc">Real-time recursive query RTT against global anycast resolvers</div>
+            </div>
+            <button class="btn-cf btn-cf-orange" id="btn-run-benchmark" onclick="runDnsBenchmark()">
+              Run Benchmark
+            </button>
+          </div>
+          <div class="radar-panel-body">
+            <div id="dns-benchmark-list" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="color: var(--cf-text-muted); font-size: 12px;">Click "Run Benchmark" to test Cloudflare (AS13335), Google (AS15169), and Quad9 (AS19281).</div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">Local In-Memory Caching Engine</div>
+              <div class="radar-panel-desc">Eliminate recursive internet RTT with sub-millisecond local cache hits</div>
+            </div>
+          </div>
+          <div class="radar-panel-body" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="dns-test-domain" placeholder="Domain name (e.g. cloudflare.com)" style="flex: 1; background: var(--cf-bg-card); border: 1px solid var(--cf-border-default); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--cf-text-primary); font-family: var(--font-mono); font-size: 13px;">
+              <button class="btn-cf btn-cf-orange" onclick="testDnsCache()">Resolve</button>
+            </div>
+
+            <div id="dns-cache-result" style="background: var(--cf-bg-card); border: 1px solid var(--cf-border-default); border-radius: var(--radius-sm); padding: 14px; display: none;"></div>
+
+            <div style="background: var(--cf-bg-sunken); border-radius: var(--radius-sm); padding: 14px; display: flex; justify-content: space-around; text-align: center;">
+              <div>
+                <div style="font-size: 11px; color: var(--cf-text-muted);">Cache Entries</div>
+                <div id="cache-entries" class="mono" style="font-size: 18px; font-weight: 700;">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--cf-text-muted);">Cache Hits</div>
+                <div id="cache-hits" class="mono" style="font-size: 18px; font-weight: 700; color: #10b981;">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--cf-text-muted);">Cache Misses</div>
+                <div id="cache-misses" class="mono" style="font-size: 18px; font-weight: 700; color: #f59e0b;">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--cf-text-muted);">Hit Ratio</div>
+                <div id="cache-ratio" class="mono" style="font-size: 18px; font-weight: 700; color: var(--cf-orange);">0.0%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="view-analyzer" class="view-panel" style="display: none;">
+      <div class="radar-grid-equal">
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">Bufferbloat Diagnostics &amp; Quality Score</div>
+              <div class="radar-panel-desc">Queuing delay and jitter under real link traffic</div>
+            </div>
+          </div>
+          <div class="radar-panel-body">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--cf-border-subtle);">
+                <span>Quality Grade:</span>
+                <strong id="health-grade-full" style="color: #10b981; font-size: 18px;">A+</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--cf-border-subtle);">
+                <span>Verdict:</span>
+                <span id="health-verdict-full" class="pill pill-green">Optimal Latency</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--cf-border-subtle);">
+                <span>Average Jitter (Variance):</span>
+                <span id="health-jitter-full" class="mono">-- ms</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Packet Loss:</span>
+                <span id="health-loss-full" class="mono">0.0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="radar-panel">
+          <div class="radar-panel-header">
+            <div>
+              <div class="radar-panel-title">Path MTU (PMTUD) Discovery</div>
+              <div class="radar-panel-desc">Probes Don't Fragment (DF) frame boundary</div>
+            </div>
+            <button class="btn-cf btn-cf-secondary" onclick="runMtuTest()">Test MTU</button>
+          </div>
+          <div class="radar-panel-body">
+            <div style="padding: 16px; background: var(--cf-bg-card); border-radius: var(--radius-sm); border: 1px solid var(--cf-border-default);">
+              <div style="font-size: 12px; color: var(--cf-text-muted); margin-bottom: 8px;">Standard Ethernet / Wi-Fi Frame MTU:</div>
+              <div style="display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 28px; font-weight: 700; font-family: var(--font-mono); color: var(--cf-orange);" id="mtu-val">1500</span>
+                <span style="font-size: 13px; color: var(--cf-text-secondary);">bytes</span>
+              </div>
+              <div style="margin-top: 8px; font-size: 12px; color: #10b981;" id="mtu-status">No packet fragmentation detected.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="view-sockets" class="view-panel" style="display: none;">
+      <div class="radar-panel">
+        <div class="radar-panel-header">
+          <div>
+            <div class="radar-panel-title">Active Established TCP/UDP Sockets</div>
+            <div class="radar-panel-desc">Direct Layer 4 socket mapping to local process PIDs</div>
+          </div>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="cf-table" id="sockets-table">
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Process</th>
+                <th>Protocol</th>
+                <th>Local Address:Port</th>
+                <th>Remote Endpoint:Port</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody id="sockets-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--cf-text-muted); padding: 24px;">Loading active network connections...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  
+  <div id="spotlight-modal" class="spotlight-backdrop" style="display: none;">
+    <div class="spotlight-box">
+      <div class="spotlight-input-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--cf-orange); flex-shrink: 0;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="spotlight-input" class="spotlight-input" placeholder="Type a command (e.g. Gaming, Benchmark, Report)..." autocomplete="off">
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <kbd style="font-size: 10px; color: var(--cf-text-muted);">ESC</kbd>
+          <button class="spotlight-close-btn" onclick="closeSpotlight()" title="Close Spotlight" aria-label="Close Spotlight">&times;</button>
+        </div>
+      </div>
+      <div class="spotlight-results" id="spotlight-results">
+        <div class="spotlight-item" onclick="applyQosProfile('gaming'); closeSpotlight();">
+          <span>⚡ <strong>Enable Gaming / Low-Latency Mode</strong> (DSCP 46)</span>
+          <span class="pill pill-orange">QoS</span>
+        </div>
+        <div class="spotlight-item" onclick="applyQosProfile('work'); closeSpotlight();">
+          <span>📹 <strong>Enable Work &amp; Video Conference Mode</strong> (DSCP 34)</span>
+          <span class="pill pill-cyan">QoS</span>
+        </div>
+        <div class="spotlight-item" onclick="applyQosProfile('balanced'); closeSpotlight();">
+          <span>⚖️ <strong>Reset to Balanced Mode</strong></span>
+          <span class="pill pill-gray">QoS</span>
+        </div>
+        <div class="spotlight-item" onclick="switchTab(null, 'dns'); runDnsBenchmark(); closeSpotlight();">
+          <span>🌐 <strong>Run Upstream DNS Benchmark</strong></span>
+          <span class="pill pill-green">DNS</span>
+        </div>
+        <div class="spotlight-item" onclick="openReportModal(); closeSpotlight();">
+          <span>📄 <strong>Export Executive Audit Report</strong></span>
+          <span class="pill pill-orange">Export</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div id="report-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 15px; font-weight: 700; color: var(--cf-text-primary);">Executive Network Audit &amp; QoS Report</div>
+          <div style="font-size: 11.5px; color: var(--cf-text-muted);">Cloudflare Radar format for academic evaluation &amp; viva presentation</div>
+        </div>
+        <button class="modal-close" onclick="closeReportModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 10px;">
+          <a href="/report/print" target="_blank" class="btn-cf btn-cf-orange" style="text-decoration: none;">
+            Print / Save as PDF
+          </a>
+          <a href="/api/report/markdown" class="btn-cf btn-cf-secondary" style="text-decoration: none;">
+            Download Markdown (.md)
+          </a>
+          <button class="btn-cf btn-cf-secondary" onclick="copyReportMarkdown()">
+            Copy Markdown
+          </button>
+        </div>
+        <pre id="report-preview-text" class="report-preview-area">Compiling live radar telemetry...</pre>
+      </div>
+    </div>
+  </div>
+
+  
+  <div id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--cf-orange);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toast-text">Action completed</span>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

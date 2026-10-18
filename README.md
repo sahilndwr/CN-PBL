@@ -1,0 +1,2 @@
+# CN-PBL
+An endpoint network optimizer that works on the live Windows network stack instead of a simulator. It maps sockets to processes and tracks bandwidth, applies QoS priority modes (Gaming, Work, Download Throttle), and benchmarks public DNS resolvers with a local LRU cache. It also measures jitter, packet loss, and Path MTU, and generates audit reports. The dashboard is styled like Cloudflare Radar and covers OSI Layers 3, 4, and 7.
